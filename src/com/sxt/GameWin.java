@@ -266,11 +266,19 @@ public class GameWin extends JFrame {
             // 我方鱼与敌方鱼碰撞检测
             if (myFish.getRec().intersects(enamy.getRec())) {
                 if (GameUtils.hasShield && System.currentTimeMillis() <= GameUtils.shieldEndTime) {
-                    // 有有效护盾时免疫伤害，护盾消失，敌人被移除
-                    GameUtils.hasShield = false;
-                    enamy.x = -200;
-                    enamy.y = -200;
-                    GameUtils.count += enamy.count; // 吃掉敌人还能得分！
+                    // 有有效护盾时，只有当敌方鱼比我方鱼大时才会消耗护盾
+                    if (enamy.type > myFish.level) {
+                        // 敌方鱼比我方鱼大，消耗护盾
+                        GameUtils.hasShield = false;
+                        System.out.println("护盾被大鱼消耗！");
+                        enamy.x = -200;
+                        enamy.y = -200;
+                    } else {
+                        // 敌方鱼比我方鱼小或相等，正常吃掉，不消耗护盾
+                        enamy.x = -200;
+                        enamy.y = -200;
+                        GameUtils.count += enamy.count;
+                    }
                 } else if (myFish.level >= enamy.type) {
                     // 吃掉敌人
                     enamy.x = -200;
@@ -280,11 +288,6 @@ public class GameWin extends JFrame {
                     // 被敌人吃掉
                     state = 2;
                 }
-                // 在 logic() 方法的碰撞检测部分
-                if (GameUtils.hasShield) {
-                    GameUtils.hasShield = false;
-                    System.out.println("护盾被消耗！");
-                }
             }
         }
 
@@ -292,15 +295,11 @@ public class GameWin extends JFrame {
         if (isboss && boss != null) {
             if (boss.getRec().intersects(myFish.getRec())) {
                 if (GameUtils.hasShield && System.currentTimeMillis() <= GameUtils.shieldEndTime) {
-                    // 有有效护盾时免疫Boss伤害，护盾消失
+                    // Boss总是比我方鱼大，所以碰到Boss会消耗护盾
                     GameUtils.hasShield = false;
+                    System.out.println("护盾被Boss消耗！");
                 } else {
                     state = 2;
-                }
-                // 在 logic() 方法的碰撞检测部分
-                if (GameUtils.hasShield) {
-                    GameUtils.hasShield = false;
-                    System.out.println("护盾被消耗！");
                 }
             }
         }
@@ -309,8 +308,10 @@ public class GameWin extends JFrame {
     void checkShieldExpiration() {
         if (GameUtils.hasShield && System.currentTimeMillis() > GameUtils.shieldEndTime) {
             GameUtils.hasShield = false;
+            System.out.println("护盾时间到期！");
         }
     }
+
     // 生成道具
     void generatePowerUp() {
         int x = (int)(Math.random() * (width - 50));
